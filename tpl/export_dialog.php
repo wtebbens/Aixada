@@ -5,10 +5,17 @@
 <p class="floatRight" id="export_ufs"><input type="checkbox" name="onlyActiveUfs" id="export_active_ufs" checked="checked" class="freeInput"/> <label for="onlyActiveUfs"><?php echo $Text['active_ufs']; ?></label>&nbsp;</p>
 <br/><br/>
 
+<div id="export_provider_and_products">
+<h4>Include products of each provider?</h4>
+<input type="radio" name="includeProducts" id="include_products_yes" value="1" class="freeInput"/> <label for="include_products_yes">Yes</label>&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="includeProducts" id="include_products_no" value="0" checked="checked" class="freeInput"/> <label for="include_products_no">No</label>&nbsp;&nbsp;&nbsp;&nbsp;
+<br/><br/>
+</div>
+
 <h4><?php echo $Text['export_format'];?></h4>
 <input type="radio" name="exportFormat" id="export_csv" value="csv" checked="checked" class="freeInput"/> <label for="export_csv">CSV</label>&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="exportFormat" id="export_xml" value="xml" class="freeInput"/> <label for="export_xml">XML</label>&nbsp;&nbsp;&nbsp;&nbsp;
-<input type="radio" name="exportFormat" id="export_gdrive" value="gdrive" class="freeInput"/> <label for="export_gdrive">Google Spreadsheet</label>
+<!-- input type="radio" name="exportFormat" id="export_gdrive" value="gdrive" class="freeInput"/> <label for="export_gdrive">Google Spreadsheet</label-->
 <br/><br/>
 
 <div id="export_authentication">

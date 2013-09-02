@@ -39,6 +39,9 @@ $(function(){
 	//initially hide authenticate and specific uf stuff. 
 	$('#export_authentication').hide();
 	$('#export_ufs').hide();
+	$('#export_provider_and_products').hide();
+	
+
 
 	
 	

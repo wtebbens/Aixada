@@ -235,7 +235,7 @@
 				return false; 
 		});
 
-	    // export products
+	    // export provider
 		$('#btn_provider_export')
 			.button({
 				icons: {
@@ -248,7 +248,8 @@
 					$.showMsg({
 						msg:"<?=$Text['msg_confirm_prov'];?>",
 						buttons: {
-							"<?=$Text['btn_ok'];?>":function(){						
+							"<?=$Text['btn_ok'];?>":function(){
+								$('#export_provider_and_products').show();						
 								$('#dialog_export_options')
 								.data('export', 'provider')
 								.dialog("open");
@@ -260,6 +261,7 @@
 						},
 						type: 'warning'});
 				} else {
+					$('#export_provider_and_products').show();						
 					$('#dialog_export_options')
 						.data('export', 'provider')
 						.dialog("open");
@@ -573,7 +575,8 @@
 					primary: "ui-icon-transferthick-e-w"
 	        	}
 			})
-			.click(function(e){
+			.click(function(e){	
+				$('#export_provider_and_products').hide(); //when exporting products hide provider+product option					
 				$('#dialog_export_options')
 					.data("export", "product")
 					.dialog("open");
@@ -1200,7 +1203,7 @@
 			var frmData = $('#frm_export_options').serialize();
 			if (!$.checkFormLength($('input[name=exportName]'),1,150)){
 				$.showMsg({
-					msg:"File name cannot be empty!",
+					msg:"<?=$Text['msg_err_name_empty'];?>",
 					type: 'error'});
 				return false;
 			}
@@ -1214,7 +1217,7 @@
 				var urlStr = "php/ctrl/ImportExport.php?oper=exportProviderInfo&"+frmData;
 				$('input:checkbox[name="providerBulkAction"][checked="checked"]').each(function(){
 					urlStr += "&providerId[]=" + $(this).parents('tr').attr('providerId');
-				})
+				})			
 			
 				//load the stuff through the export channel
 				$('#exportChannel').attr('src',urlStr);
