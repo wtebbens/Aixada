@@ -166,26 +166,47 @@ create procedure get_order_item_detail (in the_order_id int, in the_uf_id int, i
 begin
 	
 	declare edited boolean default is_under_revision(the_order_id);
+	declare validated boolean default is_validated(the_order_id, 0);
 	declare wherec varchar(255) default ""; 
 	
-	-- filter for ufs
-	if (the_uf_id > 0 and edited is true) then
-		set wherec = concat(" and ots.uf_id=", the_uf_id);
-	elseif (the_uf_id > 0 and edited is false) then
-		set wherec = concat(" and oi.uf_id=", the_uf_id);
-	end if;
-	
-	-- filter for product_id -- 
-	if (the_product_id > 0 and edited is true) then
-		set wherec = concat(wherec, " and ots.product_id=", the_product_id);
-	elseif (the_product_id > 0 and edited is false ) then
-		set wherec = concat(wherec, " and oi.product_id = p.id and oi.product_id=", the_product_id);
-	elseif (edited is false) then
-		set wherec = concat(wherec, " and oi.product_id = p.id");
+	-- if order exists in the order_to_shop table and is not yet validated --
+	-- it means that it is currently edited and the currently edited quanties should be retrieved --
+	if (edited is true and validated is false) then
+		
+		-- filter for uf id 
+		if (the_uf_id>0) then 
+			set wherec = concat(" and ots.uf_id=", the_uf_id);
+		end if; 
+		
+		-- filter for product_id
+		if (product_id > 0) then
+			set wherec = concat(wherec, " and ots.product_id=", the_product_id);
+		end if; 
+		
+	-- if order does not yet exist in shop_to_move, or 
+	-- exists in shop_to_move but is already validated
+	else 
+		
+		-- filter for specific uf
+		if (the_uf_id > 0) then 
+			set wherec = concat(" and oi.uf_id=", the_uf_id);
+		end if; 
+		
+		-- filter for specific product
+		if (the_product_id > 0) then 
+			set wherec = concat(wherec, " and oi.product_id = p.id and oi.product_id=", the_product_id);
+		
+		-- default, where neither uf_id nor product_id is given.  
+		else 
+			set wherec = concat(wherec, " and oi.product_id = p.id");	
+		end if; 
+		
 	end if; 
+		
 	
-	-- if the order items are edited, retrieve them from aixada_order_to_shop--
-	if (edited is true) then 
+	
+	-- if the order items are edited but not validated, retrieve them from order_to_shop--
+	if (validated is false and edited is true) then 
 		set @q = concat("select 
 				ots.*
 			from 
@@ -398,6 +419,48 @@ begin
 	return if(is_edited, true, false);
 end|
 
+/**
+ * determines if order_items of a given order have already been moved to aixada_shop_item and if they have been
+ * validated. For an order_id, checks if any shop_carts which contain ordered items are validated. For cart_id, 
+ * returns directly if cart has been validated. 
+ */
+drop function if exists is_validated|
+create function is_validated(the_order_id int, the_cart_id int)
+returns boolean
+reads sql data
+begin
+	
+	declare has_validated_items int default 0; 
+	
+	if the_order_id > 0 then
+		set has_validated_items = (select 
+			count(c.id)
+		from
+			aixada_order_item oi,
+			aixada_shop_item si, 
+			aixada_cart c
+		where 
+			oi.order_id = the_order_id
+			and oi.id = si.order_item_id
+			and si.cart_id = c.id
+			and c.ts_validated>0); 
+				
+	elseif the_cart_id > 0 then
+	
+		set has_validated_items = (select
+			count(id)
+		from 
+			aixada_cart 
+		where 
+			id = the_cart_id
+			and ts_validated>0); 
+	
+	end if; 
+	
+	return if(has_validated_items, true, false);
+	
+end |
+
 	
 
 /**
@@ -590,42 +653,6 @@ begin
 	group by
 		p.id;
 end |
-
-
-/**
- * determines if order_items of a given order have already been moved to aixada_shop_item and if they have been
- * validated. returns the nr of validate items. Accepts either order_id or cart_id
- */
-drop procedure if exists get_validated_status|
-create procedure get_validated_status(in the_order_id int, in the_cart_id int) 
-begin
-	
-	if the_order_id > 0 then
-		select 
-			c.id as cart_id, 
-			if (c.ts_validated>0, 1, 0) as validated
-		from
-			aixada_order_item oi,
-			aixada_shop_item si, 
-			aixada_cart c
-		where 
-			oi.order_id = the_order_id
-			and oi.id = si.order_item_id
-			and si.cart_id = c.id; 
-				
-	elseif the_cart_id > 0 then
-	
-		select
-			id as cart_id,
-			if (ts_validated>0, 1, 0) as validated 
-		from 
-			aixada_cart 
-		where 
-			id = the_cart_id; 
-	
-	end if; 
-end |
-
 
 
 /**

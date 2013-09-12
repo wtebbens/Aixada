@@ -196,7 +196,7 @@
 							var tblCol = '.Col-'+uf_id;
 							var tblRow = '.Row-'+product_id;
 							var pid	= product_id + '_' + uf_id; 
-							
+							if (qu != quShop) quShopHTML = '<span class="negativeBalance">'+quShopHTML+'</span>';
 							$(tblCol+tblRow).append(' <p id="'+pid+'" class="textAlignCenter">'+qu+''+quShopHTML+'</p>')
 							
 							if (revised == true) {
