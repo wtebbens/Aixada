@@ -69,17 +69,11 @@ class abstract_export_manager {
 	 * 
 	 * Hashtable holding the filenames and the corresponding xml result strings to be exported. 
 	 * The hash key is the filename; the entry the xml data to be exported. 
+	 * In case of exporting the products for a given list or providers, several files will be created: the provider list
+	 * and one file for each product list. 
 	 * @var array
 	 */
 	protected $xml_result = null; 
-	
-	
-	/**
-	 * 
-	 * Array holding the rows of the CSV
-	 * @var array
-	 */
-	//protected $csv_result = null;
 	
 
 	
@@ -95,7 +89,8 @@ class abstract_export_manager {
 	/**
 	 * 
 	 * List of all files that have been created during the export process.
-	 * Usually these are all the files that will be bundled.  
+	 * Usually these are all the files that will be bundled.  The array contains
+	 * the absolute file paths of the created files. Usually added in function write_file()
 	 * @var array automatically created
 	 */
 	private $created_files = null; 
@@ -213,12 +208,45 @@ class abstract_export_manager {
     	
     	if ($this->download) $this->force_download();
     	
-    	/*if ($this->public) $this->publish();*/
+    	if ($public) $this->publish();
     	
-    	
+    	$this->clean_up();
     }
     	
+    
+    /**
+     * 
+     * Remove all files from the temporary directory 
+     * and reset the create_files array. 
+     */
+    private function clean_up(){
+    	foreach($this->created_files as $filepath) {
+				@unlink($filepath);
+		}
+    }
+    
+
+    /**
+     * 
+     * Copies the written files into the export directory. 
+     */
+    private function publish(){
     	
+    	//several files
+    	if ($this->zipall){
+    		//the zip archive should always be the last file created
+    		$path_to_file = end($this->created_files); 
+    		
+    	//we have just one file
+    	} else {
+    		$path_to_file = $this->created_files[0];     		
+    	}
+
+    	//move the file to the export directory
+    	if(!rename($path_to_file, $this->export_dir . basename($path_to_file) ) ) {
+      		throw new Exception ("Export error: files could not be published in export directory!");
+    	}	
+    }
 
     
     
@@ -235,7 +263,7 @@ class abstract_export_manager {
     	if ($this->zipall){
     		header('Content-Type: application/zip');
     		
-    		//should always be the last file created
+    		//the zip archive should always be the last file created
     		$path_to_file = end($this->created_files); 
     		
     		
@@ -257,17 +285,7 @@ class abstract_export_manager {
 		header("Content-Length: " . filesize($path_to_file));
 
 	    readfile($path_to_file);
-    	
-					
-		/*$fp = fopen('php://output', 'w');
-		foreach ($csv_result as $row) 
-		    fputcsv($fp, $row);
-		fclose($fp);*/
-
-					
-		/*$newstr = '<?xml version="1.0" encoding="utf-8"?>';  
-	  	$newstr .= $this->xml_result; */
-    	
+        	
     }
     
     
@@ -447,8 +465,8 @@ class abstract_export_manager {
 		  		
 		fclose($outhandle);
 		
-		$firephp->log($this->created_files, "created files array");
-		$firephp->log($publish_filename, "the published file name");
+		//$firephp->log($this->created_files, "created files array");
+		//$firephp->log($publish_filename, "the published file name");
 		
 		
 		//add the current file to the records for eventual zipping. 

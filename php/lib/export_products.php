@@ -91,8 +91,8 @@ class export_products extends abstract_export_manager {
 			
 		}
 		
-		global $firephp; 
-		$firephp->log($this->xml_result, "the product result");
+		//global $firephp; 
+		//$firephp->log($this->xml_result, "the product result");
 		
 		$this->xml_result[$this->filename] = $xml_tmp; 
 		

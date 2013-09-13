@@ -60,12 +60,19 @@ class export_providers extends abstract_export_manager {
 		
 		//retrieve all active providers
 		if ($this->provider_ids == 0){
+			$this->provider_ids = array();
 			$xml_tmp = stored_query_XML_fields('aixada_provider_list_all_query', 
 						   'aixada_provider.name', 
 						   'asc', 0,  1000000, 
 						   'aixada_provider.active=1');
 
-			//need xpath here to retrieve all provider ids!!!! 	
+			//extract provider ids eventually needed for exporting product lists of each
+			$xmldoc = new SimpleXMLElement($xml_tmp);
+			$resultado = $xmldoc->xpath('/rowset/row/@id');
+			foreach ($resultado as $rows) {
+    			array_push($this->provider_ids, (string)$rows->id);
+			}
+
 			
 		//otherwise retrieve specified providers 
 		} else {

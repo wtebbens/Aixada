@@ -192,8 +192,9 @@ function get_param($param_name, $default=null, $transform = '') {
 			}
 		
 			//add the files
-			foreach($valid_files as $file) {
-				$zip->addFile($file,$file);
+			foreach($valid_files as $filepath) {
+				$file_name = basename($filepath);
+				$zip->addFile($filepath,$file_name);
 			}
 		
 			//debug
